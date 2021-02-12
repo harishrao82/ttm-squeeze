@@ -1,0 +1,1 @@
+ curl "https://www.sec.gov/include/ticker.txt"  |awk -F' ' '{print $1}' > allstock.csv
