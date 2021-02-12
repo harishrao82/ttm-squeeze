@@ -1,7 +1,27 @@
 import os, pandas
 import plotly.graph_objects as go
 
+
+
+
+def chart(df,symbol):
+    candlestick = go.Candlestick(x=df['Date'], open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])
+    upper_band = go.Scatter(x=df['Date'], y=df['upper_band'], name='Upper Bollinger Band', line={'color': 'red'})
+    lower_band = go.Scatter(x=df['Date'], y=df['lower_band'], name='Lower Bollinger Band', line={'color': 'red'})
+
+    upper_keltner = go.Scatter(x=df['Date'], y=df['upper_keltner'], name='Upper Keltner Channel', line={'color': 'blue'})
+    lower_keltner = go.Scatter(x=df['Date'], y=df['lower_keltner'], name='Lower Keltner Channel', line={'color': 'blue'})
+
+    fig = go.Figure(data=[candlestick, upper_band, lower_band, upper_keltner, lower_keltner])
+    fig.layout.xaxis.type = 'category'
+    fig.layout.xaxis.rangeslider.visible = False
+    fig.update_layout(title_text=symbol, title_x=0.5)
+    fig.show()
+
 dataframes = {}
+
+symbols=[]
+
 
 for filename in os.listdir('datasets'):
     #print(filename)
@@ -26,27 +46,21 @@ for filename in os.listdir('datasets'):
         return df['lower_band'] > df['lower_keltner'] and df['upper_band'] < df['upper_keltner']
 
     df['squeeze_on'] = df.apply(in_squeeze, axis=1)
-
-    if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
-        print("{} is coming out the squeeze".format(symbol))
+    try:
+        if df.iloc[-3]['squeeze_on'] and not df.iloc[-1]['squeeze_on']:
+            print("{} is coming out the squeeze".format(symbol))
+            symbols.append(symbol)
+    except:
+        pass
 
     # save all dataframes to a dictionary
     # we can chart individual names below by calling the chart() function
     dataframes[symbol] = df
+    #chart(df, symbol)
 
 
-def chart(df):
-    candlestick = go.Candlestick(x=df['Date'], open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])
-    upper_band = go.Scatter(x=df['Date'], y=df['upper_band'], name='Upper Bollinger Band', line={'color': 'red'})
-    lower_band = go.Scatter(x=df['Date'], y=df['lower_band'], name='Lower Bollinger Band', line={'color': 'red'})
 
-    upper_keltner = go.Scatter(x=df['Date'], y=df['upper_keltner'], name='Upper Keltner Channel', line={'color': 'blue'})
-    lower_keltner = go.Scatter(x=df['Date'], y=df['lower_keltner'], name='Lower Keltner Channel', line={'color': 'blue'})
 
-    fig = go.Figure(data=[candlestick, upper_band, lower_band, upper_keltner, lower_keltner])
-    fig.layout.xaxis.type = 'category'
-    fig.layout.xaxis.rangeslider.visible = False
-    fig.show()
-
-df = dataframes['GOOGL']
-chart(df)
+for sym in symbols:
+    df = dataframes[sym]
+    chart(df,sym)
